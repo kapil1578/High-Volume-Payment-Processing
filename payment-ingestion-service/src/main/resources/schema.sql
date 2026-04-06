@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS payment_idempotency (
+    request_id VARCHAR(128) PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

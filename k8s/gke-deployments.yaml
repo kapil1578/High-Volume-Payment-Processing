@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: REGION-docker.pkg.dev/PROJECT_ID/hvpps/api-gateway:latest
+          ports:
+            - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-ingestion-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment-ingestion-service
+  template:
+    metadata:
+      labels:
+        app: payment-ingestion-service
+    spec:
+      containers:
+        - name: payment-ingestion-service
+          image: REGION-docker.pkg.dev/PROJECT_ID/hvpps/payment-ingestion-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-processing-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment-processing-service
+  template:
+    metadata:
+      labels:
+        app: payment-processing-service
+    spec:
+      containers:
+        - name: payment-processing-service
+          image: REGION-docker.pkg.dev/PROJECT_ID/hvpps/payment-processing-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"

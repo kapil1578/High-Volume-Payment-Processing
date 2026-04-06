@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: payment-ingestion
+          uri: ${INGESTION_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/payments/**
+        - id: dashboard-service
+          uri: ${DASHBOARD_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/dashboard/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH_ISSUER_URI:https://example-issuer.invalid}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
