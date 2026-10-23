@@ -1,142 +1,109 @@
-# High-Volume Payment Processing System
+# Acknowledged Payment Ingestion — Java, Kafka, Failure Testing
 
-Java 17 + Spring Boot + Kafka + Kubernetes (GKE) starter for high-throughput payment ingestion and async processing.
+A Java 17 / Spring Boot portfolio project exploring a precise question: **when can an asynchronous API honestly say a payment request has been accepted?**
 
-## Complete documentation
+The REST API waits for Kafka acknowledgement. SQL or Redis reserves request IDs; a demonstration consumer retries failed events and forwards them to a dead-letter topic. Tests, raw measurements, and design limitations are part of the project.
 
-- Architecture and end-to-end technical documentation:
-  - `docs/ARCHITECTURE.md`
+## Start reviewing here
 
-## Why this architecture works
+- [Engineering case study](docs/ENGINEERING-CASE-STUDY.md): the original acknowledgement bug, regression test, tradeoffs, and remaining dual-write gap.
+- [Evidence report](docs/EVIDENCE.md): executed checks and raw local measurements, with explicit scope.
+- [Benchmark and profiling guide](docs/BENCHMARKS.md): repeatable commands, thresholds, environment capture, and interpretation.
+- [Architecture](docs/ARCHITECTURE.md): service boundaries and failure semantics.
 
-- **Sync + Async split**: REST accepts client requests quickly, Kafka decouples ingestion from processing.
-- **Throughput scaling**: topic partitions and consumer-group size are the primary TPS levers.
-- **Security-first edge**: OAuth2/JWT validation at the gateway before business logic.
-- **Operational visibility**: logs + metrics hooks are enabled via Actuator and structured logging.
-- **Cloud-ready**: deployment model targets Google Cloud (`GKE`, `Cloud Monitoring`, `Cloud Logging`).
+## What this demonstrates
 
-## System layout
+| Engineering concern | Implementation / evidence |
+| --- | --- |
+| Honest asynchronous API contract | `ACCEPTED` follows the Kafka send future; failure/timeout becomes HTTP 503 |
+| Concurrent request deduplication | SQL primary key; 32 concurrent attempts have one reservation winner |
+| Failure handling | Delayed ack, broker error, timeout, interruption, store failure, context restart, retry and DLQ tests |
+| Shared platform component | `platform-observability`: bounded operation/outcome tags and latency histograms across two services |
+| Measurement discipline | Opt-in HTTP-to-Kafka smoke benchmark with raw samples; configurable k6 arrival-rate runner |
+| Reviewable validation | Maven verification, per-module JaCoCo reports, Java 17/21 GitHub Actions workflow |
 
-- `payment-contracts`: shared request/event DTOs.
-- `dashboard-service`: UI-facing dashboard APIs + live SSE metrics.
-- `payment-ingestion-service`: REST API (`POST /api/payments`) + Kafka producer.
-- `payment-processing-service`: Kafka consumer for async business processing.
-- `ui-dashboard`: React/Vite operations dashboard UI.
+```mermaid
+flowchart LR
+    Client -->|POST /api/payments| Ingestion[Spring Boot ingestion]
+    Ingestion -->|reserve request ID| Store[(SQL or Redis)]
+    Ingestion -->|publish and await ack| Kafka[(payments.v1)]
+    Kafka --> Consumer[Demo consumer]
+    Consumer -->|3 retries then recovery| DLQ[(payments.v1.dlq)]
+    Ingestion --> Metrics[Prometheus metrics]
+    Consumer --> Metrics
+```
 
-## Added production capabilities
+## Run the verification first
 
-- **Persistent idempotency**
-  - Redis-backed request deduplication is enabled by default.
-  - Cloud SQL-compatible mode is available via JDBC (`HVPPS_IDEMPOTENCY_STORE=sql`).
-  - SQL schema for idempotency key table lives at `payment-ingestion-service/src/main/resources/schema.sql`.
-- **OpenAPI 3 + Swagger UI**
-  - OpenAPI JSON: `http://localhost:8081/v3/api-docs`
-  - Swagger UI: `http://localhost:8081/swagger-ui.html`
-- **Dashboard API + live stream**
-  - Overview: `GET /api/dashboard/overview`
-  - Transactions: `GET /api/dashboard/transactions`
-  - Kafka partitions: `GET /api/dashboard/kafka/partitions`
-  - Failed txns: `GET /api/dashboard/failed`
-  - Live updates: `GET /api/dashboard/stream` (SSE)
-- **Retry + DLQ**
-  - Processing consumer retries failed events 3 times (1 second backoff).
-  - Events still failing are sent to `payments.v1.dlq`.
-- **Performance load script**
-  - k6 script at `performance/k6-payments-1000tps.js` targets 1,000 requests/second.
+Requires JDK 17+ and Maven 3.9+. Integration tests use embedded Kafka and H2; Docker is not required.
 
-## Quick start
+```sh
+mvn -B -ntp verify
+mvn -B -ntp -Dportfolio.benchmark=true verify
+```
 
-1. Start local dependencies (Kafka + Redis + Postgres):
+Surefire reports are under each module's `target/surefire-reports`; coverage reports are under `target/site/jacoco`. The second command writes `payment-ingestion-service/target/evidence/local-smoke.json`. The CI workflow is supplied; a local passing run does not imply hosted CI has run.
 
-```bash
+## Run the services locally
+
+### Windows demo without Docker
+
+With Java, Maven and Node.js on PATH, run:
+
+```powershell
+.\scripts\start-local.ps1
+# If Maven is portable, pass -Maven 'C:\path\to\mvn.cmd'
+# After the first build, use -SkipBuild for faster startup.
+```
+
+Open `http://127.0.0.1:5173` for the dashboard and `http://127.0.0.1:8081/swagger-ui/index.html` for the API. The script starts an embedded Kafka broker, ingestion with in-memory H2, the processing consumer, the dashboard API and Vite. HTTP services bind to loopback. The demo Vite proxy routes directly to the services without the optional JWT gateway. This mode is for a local demonstration only; Kafka events and reservations reset when the demo restarts. Dashboard data remains synthetic.
+
+Logs and process records are under `target/local-demo/`. Stop the processes with:
+
+```powershell
+.\scripts\stop-local.ps1
+```
+
+The original evidence report describes its saved source revision; the demo launcher was added afterward.
+
+### Docker-backed development
+
+The existing Compose file provides development Kafka, Redis and PostgreSQL. Docker and image availability must be checked on the target machine. This portfolio verification used embedded dependencies instead.
+
+```sh
 docker compose up -d
+mvn -B -ntp install -DskipTests
 ```
 
-2. Build all modules:
+In separate terminals:
 
-```bash
-mvn clean package
-```
-
-3. Run services (separate terminals):
-
-```bash
-mvn -pl api-gateway spring-boot:run
-mvn -pl dashboard-service spring-boot:run
-mvn -pl payment-ingestion-service spring-boot:run
+```sh
+mvn -pl payment-ingestion-service spring-boot:run "-Dspring-boot.run.arguments=--hvpps.idempotency.store=sql --spring.sql.init.mode=always"
 mvn -pl payment-processing-service spring-boot:run
 ```
 
-4. Run dashboard UI:
+The SQL initialization flag is for the development database. Use reviewed migrations in a production design. Default Redis mode can instead be selected with `HVPPS_IDEMPOTENCY_STORE=redis`; it has a 24-hour reservation TTL. Datasource and Kafka settings are in each service's `application.yml`.
 
-```bash
-cd ui-dashboard
-npm install
-npm run dev
+```sh
+curl -X POST http://localhost:8081/api/payments -H "Content-Type: application/json" -d '{"requestId":"demo-001","accountId":"acct-1","amount":12.50,"currency":"USD","merchantId":"merchant-1"}'
 ```
 
-5. Open dashboard:
+- API schema: `http://localhost:8081/v3/api-docs`
+- Actual metrics: `http://localhost:8081/actuator/prometheus` and port `8082`
+- Retry/DLQ demonstration: send a new request with `merchantId` set to `FAIL`
+- Sustained-load tooling: `python performance/run-benchmark.py --rate 100 --duration 2m` (requires k6)
 
-```text
-http://localhost:5173
-```
+These commands address ingestion directly in a local development environment. The optional gateway requires a configured JWT issuer. The existing auth service is a mock. Do not expose the development stack as a payment service.
 
-6. Send a payment:
+## Precise limits
 
-```bash
-curl -X POST http://localhost:8081/api/payments \
-  -H "Content-Type: application/json" \
-  -d '{
-    "requestId": "req-1001",
-    "accountId": "acct-42",
-    "amount": 250.75,
-    "currency": "USD",
-    "merchantId": "mrc-9001"
-  }'
-```
+- This is an ingestion/reliability demonstration, **not a settlement engine**. The consumer does not debit accounts or write a ledger.
+- Reservation and Kafka publication are not atomic. A crash can strand a reservation; a timeout can leave an unknown publication outcome. There is no automated reconciliation/outbox yet.
+- `DUPLICATE` means a request ID is registered, not that its payment succeeded. Payload equality is not checked. Consumer exactly-once processing is not implemented.
+- The dashboard's transactions, partition views and telemetry are **synthetic demo data**, not benchmark evidence. It is labeled accordingly.
+- The k6 filename retains the original 1,000 TPS target; it defaults to 100 requests/second and does not establish achieved throughput. Short local measurements are not production capacity claims.
+- Kubernetes manifests are examples; no GKE deployment or multi-node resilience is demonstrated here.
 
-## GCP production target
+## Repository map
 
-- Container registry: `Artifact Registry`
-- Cluster runtime: `Google Kubernetes Engine (GKE)`
-- Kafka option: `Confluent Cloud` or self-managed Kafka on GKE
-- Metrics/logging: `Cloud Monitoring` + `Cloud Logging`
-- Secret management: `Secret Manager`
-- Cloud SQL mode for idempotency store (PostgreSQL) is supported with JDBC config.
-
-## Idempotency backend selection
-
-- Default (`redis`):
-  - `HVPPS_IDEMPOTENCY_STORE=redis`
-  - `REDIS_HOST=localhost`
-  - `REDIS_PORT=6379`
-- Cloud SQL/JDBC (`sql`):
-  - `HVPPS_IDEMPOTENCY_STORE=sql`
-  - `SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:5432/payments`
-  - `SPRING_DATASOURCE_USERNAME=<user>`
-  - `SPRING_DATASOURCE_PASSWORD=<password>`
-
-## DLQ and failure handling
-
-- To test retry + DLQ quickly, send a payment with `merchantId` set to `FAIL`.
-- The processing service throws a simulated downstream exception and Kafka moves the event through retry to DLQ.
-
-## k6 load test (1,000+ TPS)
-
-Install k6 and run:
-
-```bash
-k6 run performance/k6-payments-1000tps.js
-```
-
-To target a different endpoint:
-
-```bash
-k6 run -e BASE_URL=http://localhost:8081 performance/k6-payments-1000tps.js
-```
-
-## Next steps
-
-- Add contract/integration tests for retry and DLQ behavior.
-- Externalize idempotency TTL and partition counts via centralized config.
-- Add tracing (OpenTelemetry) and end-to-end correlation IDs.
+`payment-contracts` · `platform-observability` · `payment-ingestion-service` · `payment-processing-service` form the measured core. `api-gateway`, `auth-service`, `dashboard-service`, and `ui-dashboard` are supporting/demo components. See the [presentation kit](docs/PORTFOLIO-PRESENTATION.md) for a short technical walkthrough.

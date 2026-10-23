@@ -23,6 +23,7 @@ public class RedisIdempotencyStore implements IdempotencyStore {
     public boolean registerIfAbsent(String requestId) {
         Boolean added = redisTemplate.opsForValue()
                 .setIfAbsent(PREFIX + requestId, "1", DEFAULT_TTL);
-        return Boolean.TRUE.equals(added);
+        if (added == null) throw new IllegalStateException("Redis registration result is unknown");
+        return added;
     }
 }

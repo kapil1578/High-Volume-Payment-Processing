@@ -13,7 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-                "hvpps.idempotency.store=redis",
+                "hvpps.idempotency.store=sql",
+                "spring.datasource.url=jdbc:h2:mem:openapi;MODE=PostgreSQL",
+                "spring.datasource.driver-class-name=org.h2.Driver",
+                "spring.sql.init.mode=always",
                 "spring.data.redis.host=localhost",
                 "spring.data.redis.port=6379"
         }

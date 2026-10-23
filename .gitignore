@@ -6,3 +6,9 @@ target/
 logs/
 node_modules/
 ui-dashboard/dist/
+
+*.log
+performance/results/
+summary.json
+*.jfr
+__pycache__/

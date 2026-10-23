@@ -211,6 +211,7 @@ export default function App() {
         </aside>
 
         <main className="content">
+          <p role="note"><strong>Demo data:</strong> This dashboard uses synthetic transactions and telemetry. For measured service behavior, use the Actuator Prometheus endpoints and benchmark evidence.</p>
           <div className="title-row">
             <h2>{sectionTitle}</h2>
             <button className="primary">+ New endpoint</button>

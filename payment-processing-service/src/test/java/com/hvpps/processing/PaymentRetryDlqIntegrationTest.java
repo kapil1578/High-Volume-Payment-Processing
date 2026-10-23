@@ -24,7 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {
         "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        "spring.kafka.consumer.auto-offset-reset=earliest"
+        "spring.kafka.consumer.auto-offset-reset=earliest",
+        "server.port=0"
 })
 @EmbeddedKafka(partitions = 1, topics = {"payments.v1", "payments.v1.dlq"})
 class PaymentRetryDlqIntegrationTest {
@@ -34,6 +35,9 @@ class PaymentRetryDlqIntegrationTest {
 
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
+
+    @Autowired
+    private io.micrometer.core.instrument.MeterRegistry registry;
 
     @Test
     void failedPaymentIsRetriedThenPublishedToDlq() {
@@ -46,7 +50,7 @@ class PaymentRetryDlqIntegrationTest {
                 Instant.now()
         );
 
-        Consumer<String, PaymentEvent> dlqConsumer = buildDlqConsumer();
+        try (Consumer<String, PaymentEvent> dlqConsumer = buildDlqConsumer()) {
         dlqConsumer.subscribe(Collections.singletonList("payments.v1.dlq"));
 
         kafkaTemplate.send("payments.v1", event.requestId(), event);
@@ -57,6 +61,9 @@ class PaymentRetryDlqIntegrationTest {
         assertThat(dlqRecord.key()).isEqualTo(event.requestId());
         assertThat(dlqRecord.value()).isNotNull();
         assertThat(dlqRecord.value().requestId()).isEqualTo(event.requestId());
+        assertThat(registry.get("hvpps.operation").tag("operation", "processing")
+                .tag("outcome", "failure").timer().count()).isEqualTo(4);
+        }
     }
 
     private Consumer<String, PaymentEvent> buildDlqConsumer() {
