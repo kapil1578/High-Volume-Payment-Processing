@@ -1,0 +1,368 @@
+{
+  "collectedUtc": "2026-10-23T09:36:40.107365+00:00",
+  "baseCommit": "c5fb3f7bc9f57318cb6504e01633e3a0a9a8adf4",
+  "workingTree": "M .gitignore\n M README.md\n M docs/ARCHITECTURE.md\n M payment-ingestion-service/pom.xml\n M payment-ingestion-service/src/main/java/com/hvpps/ingestion/core/PaymentIngestionService.java\n M payment-ingestion-service/src/main/java/com/hvpps/ingestion/idempotency/RedisIdempotencyStore.java\n M payment-ingestion-service/src/main/resources/application.yml\n M payment-ingestion-service/src/test/java/com/hvpps/ingestion/OpenApiSmokeIntegrationTest.java\n M payment-processing-service/pom.xml\n M payment-processing-service/src/main/java/com/hvpps/processing/config/KafkaErrorHandlingConfig.java\n M payment-processing-service/src/main/java/com/hvpps/processing/consumer/PaymentEventConsumer.java\n M payment-processing-service/src/test/java/com/hvpps/processing/PaymentRetryDlqIntegrationTest.java\n M performance/k6-payments-1000tps.js\n M pom.xml\n M ui-dashboard/src/App.jsx\n?? .github/\n?? docs/BENCHMARKS.md\n?? docs/ENGINEERING-CASE-STUDY.md\n?? docs/PORTFOLIO-PRESENTATION.md\n?? payment-ingestion-service/src/test/java/com/hvpps/ingestion/LocalEvidenceBenchmarkTest.java\n?? payment-ingestion-service/src/test/java/com/hvpps/ingestion/PaymentIngestionServiceTest.java\n?? payment-ingestion-service/src/test/java/com/hvpps/ingestion/PaymentValidationTest.java\n?? payment-ingestion-service/src/test/java/com/hvpps/ingestion/RedisIdempotencyStoreTest.java\n?? payment-ingestion-service/src/test/java/com/hvpps/ingestion/SqlIdempotencyConcurrencyTest.java\n?? performance/collect-evidence.py\n?? performance/run-benchmark.py\n?? platform-observability/",
+  "sourceFingerprintSha256": "015f17a5f972765138a68c83f9e1f8d93f7ff351aa0c0f91fc4f732ffc735e23",
+  "command": "mvn -B -ntp -Dportfolio.benchmark=true clean verify",
+  "note": "Reports collected from the last local run; clean verification prevents stale test reports.",
+  "totals": {
+    "tests": 21,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.LocalEvidenceBenchmarkTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 19.867,
+      "cases": [
+        {
+          "name": "recordsHttpToKafkaAcknowledgementSmokeMeasurement",
+          "seconds": 2.134,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.OpenApiSmokeIntegrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.676,
+      "cases": [
+        {
+          "name": "apiDocsEndpointExposesPaymentsContract",
+          "seconds": 0.294,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.PaymentIdempotencyRestartIntegrationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.522,
+      "cases": [
+        {
+          "name": "firstRequestIsAccepted",
+          "seconds": 0.9,
+          "status": "passed"
+        },
+        {
+          "name": "duplicateRequestIsRejectedAfterContextRestart",
+          "seconds": 0.737,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.PaymentIngestionServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.657,
+      "cases": [
+        {
+          "name": "duplicateDoesNotPublishOrClaimAcceptance",
+          "seconds": 0.543,
+          "status": "passed"
+        },
+        {
+          "name": "retryAfterUnknownOutcomeDoesNotRepublish",
+          "seconds": 0.065,
+          "status": "passed"
+        },
+        {
+          "name": "unacknowledgedPublicationTimesOut",
+          "seconds": 0.014,
+          "status": "passed"
+        },
+        {
+          "name": "preservesThreadInterruption",
+          "seconds": 0.004,
+          "status": "passed"
+        },
+        {
+          "name": "unavailableDedupeStoreFailsClosed",
+          "seconds": 0.007,
+          "status": "passed"
+        },
+        {
+          "name": "doesNotAcceptUntilBrokerAcknowledges",
+          "seconds": 0.006,
+          "status": "passed"
+        },
+        {
+          "name": "asynchronousBrokerFailureReturnsUnavailable",
+          "seconds": 0.003,
+          "status": "passed"
+        },
+        {
+          "name": "synchronousProducerFailureReturnsUnavailable",
+          "seconds": 0.003,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.PaymentValidationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.826,
+      "cases": [
+        {
+          "name": "invalidPayloadNeverReachesPublication(String)[1]",
+          "seconds": 0.094,
+          "status": "passed"
+        },
+        {
+          "name": "invalidPayloadNeverReachesPublication(String)[2]",
+          "seconds": 0.105,
+          "status": "passed"
+        },
+        {
+          "name": "invalidPayloadNeverReachesPublication(String)[3]",
+          "seconds": 0.006,
+          "status": "passed"
+        },
+        {
+          "name": "invalidPayloadNeverReachesPublication(String)[4]",
+          "seconds": 0.004,
+          "status": "passed"
+        },
+        {
+          "name": "invalidPayloadNeverReachesPublication(String)[5]",
+          "seconds": 0.006,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.RedisIdempotencyStoreTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.312,
+      "cases": [
+        {
+          "name": "distinguishesNewDuplicateAndUnknownRegistration",
+          "seconds": 0.311,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-ingestion-service",
+      "name": "com.hvpps.ingestion.SqlIdempotencyConcurrencyTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.057,
+      "cases": [
+        {
+          "name": "concurrentRequestsHaveExactlyOneReservationWinner",
+          "seconds": 0.056,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "payment-processing-service",
+      "name": "com.hvpps.processing.PaymentRetryDlqIntegrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 21.069,
+      "cases": [
+        {
+          "name": "failedPaymentIsRetriedThenPublishedToDlq",
+          "seconds": 5.278,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "module": "platform-observability",
+      "name": "com.hvpps.platform.OperationMetricsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.342,
+      "cases": [
+        {
+          "name": "aggregatesAcrossInstancesWithoutCreatingRequestSpecificMeters",
+          "seconds": 0.307,
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "coverageByModule": {
+    "payment-ingestion-service": {
+      "INSTRUCTION": {
+        "missed": 11,
+        "covered": 208
+      },
+      "BRANCH": {
+        "missed": 2,
+        "covered": 6
+      },
+      "LINE": {
+        "missed": 2,
+        "covered": 55
+      },
+      "COMPLEXITY": {
+        "missed": 3,
+        "covered": 16
+      },
+      "METHOD": {
+        "missed": 1,
+        "covered": 14
+      },
+      "CLASS": {
+        "missed": 0,
+        "covered": 7
+      }
+    },
+    "payment-processing-service": {
+      "INSTRUCTION": {
+        "missed": 12,
+        "covered": 70
+      },
+      "BRANCH": {
+        "missed": 1,
+        "covered": 1
+      },
+      "LINE": {
+        "missed": 5,
+        "covered": 19
+      },
+      "COMPLEXITY": {
+        "missed": 2,
+        "covered": 7
+      },
+      "METHOD": {
+        "missed": 1,
+        "covered": 7
+      },
+      "CLASS": {
+        "missed": 0,
+        "covered": 3
+      }
+    },
+    "platform-observability": {
+      "INSTRUCTION": {
+        "missed": 0,
+        "covered": 96
+      },
+      "BRANCH": {
+        "missed": 0,
+        "covered": 2
+      },
+      "LINE": {
+        "missed": 0,
+        "covered": 13
+      },
+      "COMPLEXITY": {
+        "missed": 0,
+        "covered": 5
+      },
+      "METHOD": {
+        "missed": 0,
+        "covered": 4
+      },
+      "CLASS": {
+        "missed": 0,
+        "covered": 3
+      }
+    }
+  },
+  "sourceSha256": {
+    ".github/workflows/verify.yml": "275c2fba832c0fdef9aeea756108a95f142d4aacdd97e0bf1ce9e4cc587fef8e",
+    "api-gateway/pom.xml": "c4020777d4c3f411c92e5c843c4e3bca21b6a86bdad01a88a0418a70c059044e",
+    "api-gateway/src/main/java/com/hvpps/gateway/ApiGatewayApplication.java": "fe7802e9a420b1b935d013c2e6f5f24464cb7f4610b0298dcca200ff56eb03a5",
+    "api-gateway/src/main/java/com/hvpps/gateway/config/SecurityConfig.java": "76d89ee2998f1fa2513968bdd500a32b929c22cadcfee736bca0c303a1041e6c",
+    "api-gateway/src/main/resources/application.yml": "1ed823d66f2c93d1160b271a7b4e9e4ae69c9b7cba2b0509f6aaa9dd22bd92b0",
+    "auth-service/pom.xml": "48305e2c5fb16afff64b481091cc26076786e0ab2c8abb4f6e8a2655e41e42a6",
+    "auth-service/src/main/java/com/hvpps/auth/AuthServiceApplication.java": "a6fc1f2a66cc0b4ac4d3158c032a21f760d94be6052b37aa85cd0701a674e786",
+    "auth-service/src/main/java/com/hvpps/auth/api/model/AuthResponse.java": "127e437f85c039d396bd37968e9ede5c588ea0488d3f2f4fad176468c326b305",
+    "auth-service/src/main/java/com/hvpps/auth/api/model/LoginRequest.java": "d99b472ac9c00e2ff0b605b8175426bf0564afe58777afffd8090df2da7f975f",
+    "auth-service/src/main/java/com/hvpps/auth/api/model/OtpSendRequest.java": "f0d3404e58437e46cda90d9efb0ed8ad447ee376dde35502c47dd19cca5e32ff",
+    "auth-service/src/main/java/com/hvpps/auth/api/model/OtpSendResponse.java": "ac42aacbbb384b7478ec413c958279a144c49ac9a58d9ff66e5b3790716cdf7a",
+    "auth-service/src/main/java/com/hvpps/auth/api/model/OtpVerifyRequest.java": "4e5a9d37aca557d82dc006c27f2400f05e8c74d8ed507aa7d732316fc884e54f",
+    "auth-service/src/main/java/com/hvpps/auth/core/AuthService.java": "236c7bed06c2ad378c0c290267fd2eeec4f53594ddaa2449a5aae74393318d6f",
+    "dashboard-service/pom.xml": "98ea64c5d5ea8da63c5d94e37e6abb49a32145c6f42cea9f1cc5136510e5e15f",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/DashboardServiceApplication.java": "2f2bb9936f8cf6cc55f42a729b57346ed4d76cd9069f6a3709c527d3d881bb5e",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/api/DashboardController.java": "9200c6119131464b0127546cab1f108934d14ebd85af0d5ef2178595ebf2052b",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/DashboardDataService.java": "3b90041d01c72f163be3e14a2225ebd28da6d46b6c1ec4f51569ca80b501d317",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/DashboardOverview.java": "52b03b7fef78e40133133a9efd1a8ca4180cdfa0b7b5852a2b8ee27a1b7cef23",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/FailedTxn.java": "8fad2e9bccd5923dc40a1587edcd3878ced91bf6537bf7316e00564e10155afe",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/KafkaPartitionStats.java": "5b582762767668461c0816576e834fceab0c9d70aefb8f87778754bc7eefc1ff",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/LiveMetric.java": "3e612ceff7882a36dde080fef72d7aba5489503d2782d0ca9ca1882acd769a84",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/TelemetryPoint.java": "f691fd3488be6621aae0ddea1cb6e6347caa8fb2027ffed236189d7f31ad57d9",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/TelemetrySeries.java": "f6546a4ccdfb7172a08794361365ad8bc7999ca1c5fda4fd735d6566f30c2ae0",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/TransactionDetail.java": "1cbbb8b2e32c6eb852e4f1b983b2412fedfd3f7a31b5b7a080583af048d0bade",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/TransactionItem.java": "bc26a26877e8d493b35e241d7009224e3470ab92c502d580de1b22707f0d8be5",
+    "dashboard-service/src/main/java/com/hvpps/dashboard/core/model/TransactionTimelineEvent.java": "0859d2e2554373e95a30be11f25586341b4c051c5b89dd33f58b464be793ba4b",
+    "dashboard-service/src/main/resources/application.yml": "ac91a385e8922e6b6274d2adc4270442daa11c59fb54478e70d03fd05035686f",
+    "docker-compose.yml": "1ae61f573b12d5e884f20d24fac12f1f433413707e9e90ed3fc266238eb2c209",
+    "k8s/gke-deployments.yaml": "58d1645c1a86b3eb47ef9a6e32c11603de66cd43ce0ffcf296d9b41d2b1131f3",
+    "payment-contracts/pom.xml": "0bf44a4898631a420401f39dfd136a8c1df206c62f39a844a5f8d8e034c862a5",
+    "payment-contracts/src/main/java/com/hvpps/contracts/PaymentAcceptedResponse.java": "795781bb8d474b98200ac5052926a1db3a25f9c44485659602ae43b9b81cff31",
+    "payment-contracts/src/main/java/com/hvpps/contracts/PaymentEvent.java": "857b058f7012134e61a479f05bc7e0f329c37b188da7254d1703537a87c1dbfb",
+    "payment-contracts/src/main/java/com/hvpps/contracts/PaymentRequest.java": "5b2823a9a775527575c779287e9adc25af645fa9276180d6500931401f65c7b0",
+    "payment-ingestion-service/pom.xml": "3c807d744f052c8ed2d7b647932770068a8f3d8eab3f740e6d446123de9b74e9",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/PaymentIngestionApplication.java": "30aa6eef753fd9f1e6a7bd327ec554371d3c3b83589506a8f2e77e18843d99a3",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/api/PaymentController.java": "ca8b6533e973b72c121e14194c8591d9fcf98ff625dd4c7c36f2dc2954b89245",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/config/KafkaConfig.java": "7f5dc211616f1f7d46ff67fb9d32643ae195a9c8e227ef7a73f97ed64645d254",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/config/OpenApiConfig.java": "2811f2af3a6b226dbfbd8ecc2b299469feb7b1c47e14db04ca0331239b3cebaa",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/core/PaymentIngestionService.java": "5e4b19bf62548a1b8d2d93d1c4565a784ea037ebc331f459e46bde3dabf90841",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/idempotency/IdempotencyStore.java": "095b8b20b53bb69fd2a2b20aac6dd586c528690392722f2f14d7fbfba10fe842",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/idempotency/RedisIdempotencyStore.java": "9de53b4eead4fe2a85db82f8e52d2203e642d05f05bcfc54c3e739b1eca41d24",
+    "payment-ingestion-service/src/main/java/com/hvpps/ingestion/idempotency/SqlIdempotencyStore.java": "fea212675ac20348cee52492eeaf85d10146474ce481c9abe0d76dd603cad06c",
+    "payment-ingestion-service/src/main/resources/application.yml": "be5ff7cee84380e4ead3dea6ef0aadadbea898a8baeea7638ba7ad2c17c59fbd",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/LocalEvidenceBenchmarkTest.java": "e02d60105f6232fdaa068749beca55aa218e50132ae494aea2b0d91453f04b34",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/OpenApiSmokeIntegrationTest.java": "ff6eb9f1d91e0e19d8e7e2d2d2fa114724356d110adab696bed99acf562094af",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/PaymentIdempotencyRestartIntegrationTest.java": "d21670f5a31150e9de8277c19af1682fe7ccd0306893da3979a54011a9586534",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/PaymentIngestionServiceTest.java": "691e8e8108b57a45fd4f9851a177b97bbaace1448aa284ae541f28bb71aa486e",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/PaymentValidationTest.java": "ba73fa4e04cc32f53667e627718061123869a266d0ff8c5b91fadd89bf6e1865",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/RedisIdempotencyStoreTest.java": "d110cce9eb92a807abd72600c2c3010e3b4971f5ca0a27ee96b238708cba09c7",
+    "payment-ingestion-service/src/test/java/com/hvpps/ingestion/SqlIdempotencyConcurrencyTest.java": "e7bb54021f3992d48c3c963dcb6eee9b45683bd6ceaaae0c6331b9fade84ff19",
+    "payment-processing-service/pom.xml": "2ec74a4d2444cbd18fb18c524103633efddb8677c2eae14ab1d4e42f78d7a674",
+    "payment-processing-service/src/main/java/com/hvpps/processing/PaymentProcessingApplication.java": "41c61a8a2f31beceb0e1cda649f6b5efeacf23cbe598b7352d59713399ae88d3",
+    "payment-processing-service/src/main/java/com/hvpps/processing/config/KafkaErrorHandlingConfig.java": "96c32b39f0fff767b20f1cc9ba2a0b89c80236bf4d7471c9f7a79f2cec06d4e8",
+    "payment-processing-service/src/main/java/com/hvpps/processing/consumer/PaymentEventConsumer.java": "95b2128e0ba55d463b721992b145aaca9fbfd3ee98afb5fadcc1bad4cfe6b057",
+    "payment-processing-service/src/main/resources/application.yml": "84e511d60f0f2b6eb05e66145f50902c878af2aa60fbeee1e09268f646b1126a",
+    "payment-processing-service/src/test/java/com/hvpps/processing/PaymentRetryDlqIntegrationTest.java": "8f1bd2761c44987b2abb1d1fce441c3963e28db97fab1c313bb2c4f53fb82fb3",
+    "performance/collect-evidence.py": "20dfa195568041d4f6c2679ccc3b02e7fd7ffde225d06439f7d6a3ca048b1bc2",
+    "performance/k6-payments-1000tps.js": "d1c1d5b56d0c65064d15e42543c88eddb0efaf7a815e4073388a1f894a7b0d51",
+    "performance/run-benchmark.py": "dae50fd3636019fccecd494a49621bddb719824853cd1116aa8e066930ad356a",
+    "platform-observability/pom.xml": "9d345d93b396ddbb672469fe6d74ad9677dec072edda06ed04555327da90f4d7",
+    "platform-observability/src/main/java/com/hvpps/platform/OperationMetrics.java": "a3615529049aa2f9e4dca3e317a9b3f44a8cfc5798cd1789efeb65a21ff4a8e1",
+    "platform-observability/src/test/java/com/hvpps/platform/OperationMetricsTest.java": "55a42183065ba5c7072f102cf02e988a1b58dd0b1beb14a88487ccae0a91a6d7",
+    "pom.xml": "b10fa871946901b57b8102b9674bbfba3ce70be170e08843c81a38a9ade6cf63",
+    "ui-dashboard/src/App.jsx": "15f84556aee347526c23a34f18140fa3f90ac82f8b9e044586cf8939f2925675",
+    "ui-dashboard/src/main.jsx": "db38ed4fca9f4719788ccb38fc809402b4363e5588bf48ea07b3488b56cd89fe",
+    "ui-dashboard/vite.config.js": "a11b227b020493b4ccb6039280d1b72cf0b83fd471f8704ef353d377de2e5176"
+  }
+}

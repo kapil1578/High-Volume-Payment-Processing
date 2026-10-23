@@ -29,6 +29,8 @@ public class KafkaErrorHandlingConfig {
                 (record, ex) -> new TopicPartition("payments.v1.dlq", record.partition())
         );
 
+        recoverer.setFailIfSendResultIsError(true);
+
         // Retry 3 times with 1s backoff; then send to DLQ.
         return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L));
     }
